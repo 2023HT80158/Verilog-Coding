@@ -1,0 +1,121 @@
+`timescale 1ns / 1ps
+
+module FIFObuffer_tb;
+
+  // Inputs
+  reg Clk;
+  reg [31:0] dataIn;
+  reg RD;
+  reg WR;
+  reg EN;
+  reg Rst;
+
+  // Outputs
+  wire [31:0] dataOut;
+  wire EMPTY;
+  wire FULL;
+  wire ALMOST_FULL;
+  wire ALMOST_EMPTY;
+
+  // Instantiate DUT
+  FIFObuffer uut (
+    .Clk(Clk),
+    .dataIn(dataIn),
+    .RD(RD),
+    .WR(WR),
+    .EN(EN),
+    .dataOut(dataOut),
+    .Rst(Rst),
+    .EMPTY(EMPTY),
+    .FULL(FULL),
+    .ALMOST_FULL(ALMOST_FULL),
+    .ALMOST_EMPTY(ALMOST_EMPTY)
+  );
+
+  // Clock generation
+  always #10 Clk = ~Clk;
+
+  // Stimulus
+  initial begin
+    Clk    = 0;
+    dataIn = 32'h0;
+    RD     = 0;
+    WR     = 0;
+    EN     = 0;
+    Rst    = 1;
+
+    // Reset
+    #50;
+    EN  = 1;
+    Rst = 1;
+    #20;
+    Rst = 0;
+
+    // --------------------------
+    // TEST 1: Basic write/read
+    // --------------------------
+    $display("\n=== TEST 1: BASIC WRITE/READ ===");
+    WR = 1;
+    repeat(4) begin
+      @(negedge Clk);
+      dataIn = $random;
+    end
+    WR = 0;
+
+    // Read until FIFO goes empty
+    @(negedge Clk);
+    RD = 1;
+    while (!EMPTY) @(negedge Clk);
+    RD = 0;
+
+    // --------------------------
+    // TEST 2: Fill FIFO completely
+    // --------------------------
+    $display("\n=== TEST 2: FILL FIFO TO FULL ===");
+    WR = 1;
+    repeat(16) begin
+      @(negedge Clk);
+      dataIn = $random;
+    end
+    WR = 0;
+
+    // --------------------------
+    // TEST 3: Drain FIFO completely
+    // --------------------------
+    $display("\n=== TEST 3: DRAIN FIFO TO EMPTY ===");
+    RD = 1;
+    while (!EMPTY) @(negedge Clk);
+    RD = 0;
+
+    // --------------------------
+    // TEST 4: Check Almost Full/Empty
+    // --------------------------
+    $display("\n=== TEST 4: ALMOST FULL/EMPTY ===");
+    WR = 1;
+    repeat(12) begin
+      @(negedge Clk);
+      dataIn = $random;
+    end
+    WR = 0;
+
+    RD = 1;
+    repeat(10) @(negedge Clk);
+    RD = 0;
+
+    #100;
+    $finish;
+  end
+
+  // Monitor transactions
+  always @(posedge Clk) begin
+    if (WR && !FULL) begin
+      $display("T=%0t | WRITE dataIn=%h | FULL=%b EMPTY=%b AF=%b AE=%b",
+                $time, dataIn, FULL, EMPTY, ALMOST_FULL, ALMOST_EMPTY);
+    end
+    if (RD && !EMPTY) begin
+      $display("T=%0t | READ  dataOut=%h | FULL=%b EMPTY=%b AF=%b AE=%b",
+                $time, dataOut, FULL, EMPTY, ALMOST_FULL, ALMOST_EMPTY);
+    end
+  end
+
+endmodule
