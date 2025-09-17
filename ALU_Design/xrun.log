@@ -1,0 +1,28 @@
+xrun: 23.09-s001: (c) Copyright 1995-2023 Cadence Design Systems, Inc.
+TOOL:	xrun	23.09-s001: Started on Oct 12, 2024 at 09:42:12 EDT
+xrun
+	-Q
+	-unbuffered
+	-timescale 1ns/1ns
+	-sysv
+	-access +rw
+	and2.sv
+	or2.sv
+	xor2.sv
+	nand2.sv
+	adder.sv
+	shifter.sv
+	mux4to1.sv
+	mux2to1.sv
+	alu.sv
+	testbench.sv
+	Top level design units:
+		testbench
+Loading snapshot worklib.testbench:sv .................... Done
+xcelium> source /xcelium23.09/tools/xcelium/files/xmsimrc
+xcelium> run
+A=5, B=6, CTRL=2, OUT=11
+A=10, B=4, CTRL=6, OUT=6
+xmsim: *W,RNQUIE: Simulation is complete.
+xcelium> exit
+TOOL:	xrun	23.09-s001: Exiting on Oct 12, 2024 at 09:42:13 EDT  (total: 00:00:01)
